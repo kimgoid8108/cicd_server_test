@@ -1,7 +1,8 @@
-const app = require('./app');
-const dotenv = require('dotenv');
+const app = require("./app");
+const dotenv = require("dotenv");
 
-dotenv.config();
+// .env 파일 경로 명시
+dotenv.config({ path: "./backend/.env" });
 
 const PORT = process.env.PORT || 3000;
 
