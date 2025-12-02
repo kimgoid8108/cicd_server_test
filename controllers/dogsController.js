@@ -1,30 +1,49 @@
-const dogs = [
-  { id: 1, name: "Buddy", age: 3, breed: "Golden Retriever" },
-  { id: 2, name: "Max", age: 5, breed: "Bulldog" },
-];
+const { PrismaClient } = require("@prisma/client");
+const prisma = new PrismaClient();
 
-exports.getDogs = (req, res) => {
-  res.json(dogs);
-};
-
-exports.addDog = (req, res) => {
-  const newDog = { id: Date.now(), ...req.body };
-  dogs.push(newDog);
-  res.status(201).json(newDog);
-};
-
-exports.deleteDog = (req, res) => {
-  const { id } = req.params;
-  dogs = dogs.filter((dog) => dog.id !== parseInt(id));
-  res.status(204).send();
-};
-
-exports.updateDog = (req, res) => {
-  const { id } = req.params;
-  const index = dogs.findIndex((dog) => dog.id === parseInt(id));
-  if (index === -1) {
-    return res.status(404).json({ message: "강아지를 찾을 수 없습니다." });
+exports.getDogs = async (req, res) => {
+  try {
+    const dogs = await prisma.dogs.findMany();
+    res.json(dogs);
+  } catch (error) {
+    res.status(500).json({ message: "서버 에러", error: error.message });
   }
-  dogs[index] = { ...dogs[index], ...req.body };
-  res.json(dogs[index]);
+};
+
+exports.addDog = async (req, res) => {
+  const { name, breed, age } = req.body;
+  try {
+    const newDog = await prisma.dogs.create({
+      data: { name, breed, age },
+    });
+    res.status(201).json(newDog);
+  } catch (error) {
+    res.status(500).json({ message: "서버 에러", error: error.message });
+  }
+};
+
+exports.deleteDog = async (req, res) => {
+  const { id } = req.params;
+  try {
+    await prisma.dogs.delete({
+      where: { id: parseInt(id) },
+    });
+    res.status(204).send();
+  } catch (error) {
+    res.status(500).json({ message: "서버 에러", error: error.message });
+  }
+};
+
+exports.updateDog = async (req, res) => {
+  const { id } = req.params;
+  const { name, age, breed } = req.body;
+  try {
+    const updatedDog = await prisma.dogs.update({
+      where: { id: parseInt(id) },
+      data: { name, age, breed },
+    });
+    res.json(updatedDog);
+  } catch (error) {
+    res.status(500).json({ message: "서버 에러", error: error.message });
+  }
 };
